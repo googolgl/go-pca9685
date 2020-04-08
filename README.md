@@ -4,7 +4,7 @@ PCA9685 16-Channel 12-Bit PWM Driver
 [![GoDoc](https://godoc.org/github.com/googolgl/go-pca9685?status.svg)](https://godoc.org/github.com/googolgl/go-pca9685)
 [![MIT License](http://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 
-MPL3115A2 ([pdf reference](https://raw.github.com/googolgl/go-pca9685/master/docs/pca9685.pdf)) is a popular controller among Arduino and Raspberry PI developers.
+PCA9685 ([pdf reference](https://raw.github.com/googolgl/go-pca9685/master/docs/pca9685.pdf)) is a popular controller among Arduino and Raspberry PI developers.
 The 16-Channel 12-bit PWM/Servo Driver will drive up to 16 servos over I2C with only 2 pins.  The on-board PWM controller will drive all 16 channels.  What's more, you can chain up to 62 of them to control up to 992 servos - all with the same 2 pins!
 ![image](https://raw.github.com/googolgl/go-pca9685/master/docs/pca9685.jpg)
 
