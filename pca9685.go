@@ -67,7 +67,7 @@ type PCA9685 struct {
 }
 
 // New creates a new driver with specified i2c interface
-func New(i2c *i2c.I2C, name string, minPulse, maxPulse uint) *PCA9685 {
+func New(i2c *i2c.I2C, name string) *PCA9685 {
 	return &PCA9685{
 		conn: i2c,
 		name: name,
