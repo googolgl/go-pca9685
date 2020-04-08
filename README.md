@@ -24,7 +24,7 @@ func main() {
 	}
 	defer i2c.Close()
 
-    pwm0, err := PCA9685.New(i2c, "Device0",MIN_PULSE, MAX_PULSE)
+    pwm0, err := PCA9685.New(i2c, "Device0")
     if err != nil {
 		log.Fatal(err)
     }
