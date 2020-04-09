@@ -31,33 +31,34 @@ import (
 )
 
 const (
-	PCA9685Address byte = 0x40
+	//Address default for controller
+	Address byte = 0x40
 
-	PCA9685Mode1      byte = 0x00
-	PCA9685Mode2      byte = 0x01
-	PCA9685SubAdr1    byte = 0x02
-	PCA9685SubAdr2    byte = 0x03
-	PCA9685SubAdr3    byte = 0x04
-	PCA9685Prescale   byte = 0xFE
-	PCA9685Led0OnL    byte = 0x06
-	PCA9685Led0OnH    byte = 0x07
-	PCA9685Led0OffL   byte = 0x08
-	PCA9685Led0OffH   byte = 0x09
-	PCA9685AllLedOnL  byte = 0xFA
-	PCA9685AllLedOnH  byte = 0xFB
-	PCA9685AllLedOffL byte = 0xFC
-	PCA9685AllLedOffH byte = 0xFD
+	Mode1      byte = 0x00
+	Mode2      byte = 0x01
+	SubAdr1    byte = 0x02
+	SubAdr2    byte = 0x03
+	SubAdr3    byte = 0x04
+	Prescale   byte = 0xFE
+	Led0OnL    byte = 0x06
+	Led0OnH    byte = 0x07
+	Led0OffL   byte = 0x08
+	Led0OffH   byte = 0x09
+	AllLedOnL  byte = 0xFA
+	AllLedOnH  byte = 0xFB
+	AllLedOffL byte = 0xFC
+	AllLedOffH byte = 0xFD
 
 	// Bits:
-	PCA9685Restart byte = 0x80
-	PCA9685Sleep   byte = 0x10
-	PCA9685AllCall byte = 0x01
-	PCA9685Invert  byte = 0x10
-	PCA9685OutDrv  byte = 0x04
+	Restart byte = 0x80
+	Sleep   byte = 0x10
+	AllCall byte = 0x01
+	Invert  byte = 0x10
+	OutDrv  byte = 0x04
 
-	PCA9685DefaultFreq float32 = 1
-	PCA9685OSCFreq     float32 = 25000000 // 25MHz
-	PCA9685StepCount   float32 = 4096     // 12-bit
+	DefaultFreq float32 = 1
+	OSCFreq     float32 = 25000000 // 25MHz
+	StepCount   float32 = 4096     // 12-bit
 )
 
 // PCA9685 is a Driver for the PCA9685 16-channel 12-bit PWM/Servo controller
@@ -82,20 +83,20 @@ func (pca *PCA9685) Init() (err error) {
 	if err := pca.SetAllPWM(0, 0); err != nil {
 		return err
 	}
-	if err := pca.conn.WriteRegU8(PCA9685Mode2, PCA9685OutDrv); err != nil {
+	if err := pca.conn.WriteRegU8(Mode2, OutDrv); err != nil {
 		return err
 	}
-	if err := pca.conn.WriteRegU8(PCA9685Mode1, PCA9685AllCall); err != nil {
+	if err := pca.conn.WriteRegU8(Mode1, AllCall); err != nil {
 		return err
 	}
 	time.Sleep(5 * time.Millisecond)
 
-	mode1, err := pca.conn.ReadRegU8(PCA9685Mode1)
+	mode1, err := pca.conn.ReadRegU8(Mode1)
 	if err != nil {
 		return err
 	}
-	mode1 = mode1 & ^PCA9685Sleep
-	if err := pca.conn.WriteRegU8(PCA9685Mode1, mode1); err != nil {
+	mode1 = mode1 & ^Sleep
+	if err := pca.conn.WriteRegU8(Mode1, mode1); err != nil {
 		return err
 	}
 	time.Sleep(5 * time.Millisecond)
@@ -105,26 +106,26 @@ func (pca *PCA9685) Init() (err error) {
 
 // SetPWMFreq sets the PWM frequency in Hz
 func (pca *PCA9685) SetPWMFreq(freq float32) (err error) {
-	prescaleval := PCA9685OSCFreq / PCA9685StepCount / freq
-	prescaleval -= PCA9685DefaultFreq
+	var prescaleval float32 = OSCFreq / StepCount / freq
+	prescaleval -= DefaultFreq
 	prescale := byte(prescaleval + 0.5)
 
-	mode1, err := pca.conn.ReadRegU8(PCA9685Mode1)
+	mode1, err := pca.conn.ReadRegU8(Mode1)
 	if err != nil {
 		return err
 	}
 	newMode := (mode1 & 0x7F) | 0x10
-	if err := pca.conn.WriteRegU8(PCA9685Mode1, newMode); err != nil {
+	if err := pca.conn.WriteRegU8(Mode1, newMode); err != nil {
 		return err
 	}
-	if err := pca.conn.WriteRegU8(PCA9685Prescale, prescale); err != nil {
+	if err := pca.conn.WriteRegU8(Prescale, prescale); err != nil {
 		return err
 	}
-	if err := pca.conn.WriteRegU8(PCA9685Mode1, mode1); err != nil {
+	if err := pca.conn.WriteRegU8(Mode1, mode1); err != nil {
 		return err
 	}
 	time.Sleep(5 * time.Millisecond)
-	if err := pca.conn.WriteRegU8(PCA9685Mode1, mode1|0x80); err != nil {
+	if err := pca.conn.WriteRegU8(Mode1, mode1|0x80); err != nil {
 		return err
 	}
 
@@ -133,16 +134,16 @@ func (pca *PCA9685) SetPWMFreq(freq float32) (err error) {
 
 // SetPWM sets a single PWM channel
 func (pca *PCA9685) SetPWM(chn, on, off int) (err error) {
-	if err := pca.conn.WriteRegU8(PCA9685Led0OnL+byte(4*chn), byte(on)&0xFF); err != nil {
+	if err := pca.conn.WriteRegU8(Led0OnL+byte(4*chn), byte(on)&0xFF); err != nil {
 		return err
 	}
-	if err := pca.conn.WriteRegU8(PCA9685Led0OnH+byte(4*chn), byte(on>>8)); err != nil {
+	if err := pca.conn.WriteRegU8(Led0OnH+byte(4*chn), byte(on>>8)); err != nil {
 		return err
 	}
-	if err := pca.conn.WriteRegU8(PCA9685AllLedOnL+byte(4*chn), byte(off)&0xFF); err != nil {
+	if err := pca.conn.WriteRegU8(AllLedOnL+byte(4*chn), byte(off)&0xFF); err != nil {
 		return err
 	}
-	if err := pca.conn.WriteRegU8(PCA9685AllLedOnH+byte(4*chn), byte(off>>8)); err != nil {
+	if err := pca.conn.WriteRegU8(AllLedOnH+byte(4*chn), byte(off>>8)); err != nil {
 		return err
 	}
 	return
@@ -150,16 +151,16 @@ func (pca *PCA9685) SetPWM(chn, on, off int) (err error) {
 
 // SetAllPWM sets all PWM channels
 func (pca *PCA9685) SetAllPWM(on, off int) (err error) {
-	if err := pca.conn.WriteRegU8(PCA9685AllLedOnL, byte(on)&0xFF); err != nil {
+	if err := pca.conn.WriteRegU8(AllLedOnL, byte(on)&0xFF); err != nil {
 		return err
 	}
-	if err := pca.conn.WriteRegU8(PCA9685AllLedOnH, byte(on>>8)); err != nil {
+	if err := pca.conn.WriteRegU8(AllLedOnH, byte(on>>8)); err != nil {
 		return err
 	}
-	if err := pca.conn.WriteRegU8(PCA9685AllLedOffL, byte(off)&0xFF); err != nil {
+	if err := pca.conn.WriteRegU8(AllLedOffL, byte(off)&0xFF); err != nil {
 		return err
 	}
-	if err := pca.conn.WriteRegU8(PCA9685AllLedOffH, byte(off>>8)); err != nil {
+	if err := pca.conn.WriteRegU8(AllLedOffH, byte(off>>8)); err != nil {
 		return err
 	}
 	return
