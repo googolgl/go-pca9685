@@ -15,22 +15,40 @@ Golang usage
 
 
 ```go
+package main
+
+import (
+	"log"
+	"time"
+
+	i2c "github.com/d2r2/go-i2c"
+	"github.com/googolgl/go-pca9685"
+)
+
 func main() {
-    // Create new connection to i2c-bus on 0 line with address 0x40.
-    // Use i2cdetect utility to find device address over the i2c-bus
-    i2c, err := i2c.NewI2C(PCA9685_Address, 0)
-    if err != nil {
-        log.Fatal(err)
-    }
-    defer i2c.Close()
+	// Create new connection to i2c-bus on 1 line with address 0x40.
+	// Use i2cdetect utility to find device address over the i2c-bus
+	i2c, err := i2c.NewI2C(uint8(pca9685.Address), 1)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-    pwm0, err := PCA9685.New(i2c, "Device0")
-    if err != nil {
-        log.Fatal(err)
-    }
+	pwm0 := pca9685.New(i2c, "Device0")
+	err = pwm0.Init()
+	if err != nil {
+		log.Fatal(err)
+	}
 
-    pwm0.Init()
+	// Set the PWM frequency to 50hz
+	pwm0.SetPWMFreq(float32(50))
 
+	// For servo SG90
+	pwm0.SetPWMChannel(0, 0, 130)
+	time.Sleep(1000 * time.Millisecond)
+	pwm0.SetPWMChannel(0, 0, 510)
+	time.Sleep(500 * time.Millisecond)
+
+	pwm0.Reset()
 }
 ```
 
@@ -71,7 +89,7 @@ to discover address occupied by peripheral device. To install utility you should
 	10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 	20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 	30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-	40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+	40: 40 -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 	50: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 	60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 	70: -- -- -- -- -- -- 76 --    
