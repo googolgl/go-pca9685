@@ -40,13 +40,12 @@ func main() {
 	}
 
 	// Set the PWM frequency to 50hz
-	pwm0.SetPWMFreq(float32(50))
+	pwm0.SetPWMFreq(50)
 
 	// For servo SG90
 	pwm0.SetPWMChannel(0, 0, 130)
-	time.Sleep(1000 * time.Millisecond)
+	time.Sleep(1 * time.Second)
 	pwm0.SetPWMChannel(0, 0, 510)
-	time.Sleep(500 * time.Millisecond)
 
 	pwm0.Reset()
 }
