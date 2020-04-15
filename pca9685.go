@@ -53,7 +53,7 @@ type PCA9685 struct {
 }
 
 // New creates a new driver with specified i2c interface
-func New(i2c *i2c.I2C, name string) *PCA9685 {
+func PWMNew(i2c *i2c.I2C, name string) *PCA9685 {
 	return &PCA9685{
 		conn: i2c,
 		name: name,
@@ -69,7 +69,7 @@ func (pca *PCA9685) Init() (err error) {
 }
 
 // SetPWMFreq sets the PWM frequency in Hz
-func (pca *PCA9685) SetPWMFreq(freq float32) (err error) {
+func (pca *PCA9685) SetFreq(freq float32) (err error) {
 	prescaleVal := ReferenceClockSpeed/StepCount/freq + 0.5
 	if prescaleVal < 3.0 {
 		return fmt.Errorf("PCA9685 cannot output at the given frequency")
@@ -98,7 +98,7 @@ func (pca *PCA9685) Reset() (err error) {
 }
 
 // SetPWMChannel sets a single PWM channel
-func (pca *PCA9685) SetPWMChannel(chn, on, off int) (err error) {
+func (pca *PCA9685) SetChannel(chn, on, off int) (err error) {
 	if chn < 0 || chn > 15 {
 		return fmt.Errorf("invalid [channel] value")
 	}

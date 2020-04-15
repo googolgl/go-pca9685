@@ -33,19 +33,19 @@ func main() {
 		log.Fatal(err)
 	}
 
-	pwm0 := pca9685.New(i2c, "Device0")
+	pwm0 := pca9685.PWMNew(i2c, "Device0")
 	err = pwm0.Init()
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	// Set the PWM frequency to 50hz
-	pwm0.SetPWMFreq(50)
+	pwm0.SetFreq(50)
 
 	// For servo SG90
-	pwm0.SetPWMChannel(0, 0, 130)
+	pwm0.SetChannel(0, 0, 130)
 	time.Sleep(1 * time.Second)
-	pwm0.SetPWMChannel(0, 0, 510)
+	pwm0.SetChannel(0, 0, 510)
 
 	pwm0.Reset()
 }
