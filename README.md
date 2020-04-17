@@ -28,19 +28,16 @@ import (
 func main() {
 	// Create new connection to i2c-bus on 1 line with address 0x40.
 	// Use i2cdetect utility to find device address over the i2c-bus
-	i2c, err := i2c.NewI2C(uint8(pca9685.Address), 1)
+	i2c, err := i2c.NewI2C(pca9685.Address, 1)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	pwm0 := pca9685.PWMNew(i2c, "Device0")
+	pwm0 := pca9685.PWMNew(i2c, nil)
 	err = pwm0.Init()
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	// Set the PWM frequency to 50hz
-	pwm0.SetFreq(50)
 
 	// For servo SG90
 	pwm0.SetChannel(0, 0, 130)
