@@ -33,18 +33,28 @@ func main() {
 		log.Fatal(err)
 	}
 
-	pwm0 := pca9685.PWMNew(i2c, nil)
-	err = pwm0.Init()
+	pca0 := pca9685.PCANew(i2c, nil)
+	err = pca0.Init()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// For servo SG90
-	pwm0.SetChannel(0, 0, 130)
-	time.Sleep(1 * time.Second)
-	pwm0.SetChannel(0, 0, 510)
-
-	pwm0.Reset()
+	// Sets frequency for channel 0
+	pca0.SetChannel(0, 0, 130)
+    time.Sleep(1 * time.Second)
+    
+    // Angle in degrees. Must be in the range `0` to `Range`
+    // Rotates from 0 to 130 degrees
+    servo1 := ServoNew(pca0, 0, nil)
+    for i := 0; i < 130; i++ {
+		servo1.Angle(i)
+		time.Sleep(10 * time.Millisecond)
+    }
+    
+    // Fraction as pulse width expressed between 0.0 `MinPulse` and 1.0 `MaxPulse`
+    servo1.Fraction(0.5)
+	
+	pca0.DeInit()
 }
 ```
 

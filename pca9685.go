@@ -55,18 +55,20 @@ type PCA9685 struct {
 
 // Options for controller
 type Options struct {
-	Name      string
-	Frequency float32
+	Name       string
+	Frequency  float32
+	ClockSpeed float32
 }
 
-// PWMNew creates a new driver with specified i2c interface
-func PWMNew(i2c *i2c.I2C, optn *Options) *PCA9685 {
+// PCANew creates a new driver with specified i2c interface
+func PCANew(i2c *i2c.I2C, optn *Options) *PCA9685 {
 	adr := i2c.GetAddr()
 	pca := &PCA9685{
 		Conn: i2c,
 		Optn: &Options{
-			Name:      "Controller" + fmt.Sprintf("-0x%x", adr),
-			Frequency: DefaultPWMFrequency,
+			Name:       "Controller" + fmt.Sprintf("-0x%x", adr),
+			Frequency:  DefaultPWMFrequency,
+			ClockSpeed: ReferenceClockSpeed,
 		},
 	}
 	if optn != nil {
@@ -80,13 +82,10 @@ func (pca *PCA9685) Init() (err error) {
 	if pca.Conn.GetAddr() == 0 {
 		return fmt.Errorf(`device %v is not initiated`, pca.Optn.Name)
 	}
-	if err := pca.SetFreq(pca.Optn.Frequency); err != nil {
-		return err
-	}
-	return pca.Reset()
+	return pca.SetFreq(pca.Optn.Frequency)
 }
 
-// SetFreq sets the PWM frequency in Hz
+// SetFreq sets the PWM frequency in Hz for controller
 func (pca *PCA9685) SetFreq(freq float32) (err error) {
 	prescaleVal := ReferenceClockSpeed/StepCount/freq + 0.5
 	if prescaleVal < 3.0 {
@@ -110,8 +109,13 @@ func (pca *PCA9685) SetFreq(freq float32) (err error) {
 	return pca.Conn.WriteRegU8(Mode1, oldMode|0xA1) // Mode 1, autoincrement on)
 }
 
-// Reset the chip
-func (pca *PCA9685) Reset() (err error) {
+// GetFreq returns frequency value
+func (pca *PCA9685) GetFreq() float32 {
+	return pca.Optn.Frequency
+}
+
+// DeInit reset the chip
+func (pca *PCA9685) DeInit() (err error) {
 	return pca.Conn.WriteRegU8(Mode1, 0x00)
 }
 
@@ -129,8 +133,5 @@ func (pca *PCA9685) SetChannel(chn, on, off int) (err error) {
 
 	buf := []byte{Led0On + byte(4*chn), byte(on) & 0xFF, byte(on >> 8), byte(off) & 0xFF, byte(off >> 8)}
 	_, err = pca.Conn.WriteBytes(buf)
-	if err != nil {
-		return err
-	}
-	return
+	return err
 }
