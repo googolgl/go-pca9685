@@ -26,28 +26,35 @@ import (
 )
 
 func main() {
-	// Create new connection to i2c-bus on 1 line with address 0x40.
-	// Use i2cdetect utility to find device address over the i2c-bus
-	i2c, err := i2c.NewI2C(uint8(pca9685.Address), 1)
-	if err != nil {
-		log.Fatal(err)
-	}
+    // Create new connection to i2c-bus on 1 line with address 0x40.
+    // Use i2cdetect utility to find device address over the i2c-bus
+    i2c, err := i2c.NewI2C(pca9685.Address, 1)
+    if err != nil {
+        log.Fatal(err)
+    }
 
-	pwm0 := pca9685.PWMNew(i2c, "Device0")
-	err = pwm0.Init()
-	if err != nil {
-		log.Fatal(err)
-	}
+    pca0 := pca9685.PCANew(i2c, nil)
+    err = pca0.Init()
+    if err != nil {
+    log.Fatal(err)
+    }
 
-	// Set the PWM frequency to 50hz
-	pwm0.SetFreq(50)
+    // Sets frequency for channel 0
+    pca0.SetChannel(0, 0, 130)
+    time.Sleep(1 * time.Second)
 
-	// For servo SG90
-	pwm0.SetChannel(0, 0, 130)
-	time.Sleep(1 * time.Second)
-	pwm0.SetChannel(0, 0, 510)
+    // Angle in degrees. Must be in the range `0` to `Range`
+    // Rotates from 0 to 130 degrees
+    servo1 := ServoNew(pca0, 0, nil)
+    for i := 0; i < 130; i++ {
+        servo1.Angle(i)
+        time.Sleep(10 * time.Millisecond)
+    }
 
-	pwm0.Reset()
+    // Fraction as pulse width expressed between 0.0 `MinPulse` and 1.0 `MaxPulse`
+    servo1.Fraction(0.5)
+
+    pca0.DeInit()
 }
 ```
 
