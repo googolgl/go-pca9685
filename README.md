@@ -36,16 +36,17 @@ func main() {
     pca0 := pca9685.PCANew(i2c, nil)
     err = pca0.Init()
     if err != nil {
-    log.Fatal(err)
+        log.Fatal(err)
     }
 
-    // Sets frequency for channel 0
+    // Sets a single PWM channel 0
     pca0.SetChannel(0, 0, 130)
     time.Sleep(1 * time.Second)
 
-    // Angle in degrees. Must be in the range `0` to `Range`
-    // Rotates from 0 to 130 degrees
+    // Servo 
     servo1 := ServoNew(pca0, 0, nil)
+
+    // Angle in degrees. Must be in the range `0` to `Range`
     for i := 0; i < 130; i++ {
         servo1.Angle(i)
         time.Sleep(10 * time.Millisecond)

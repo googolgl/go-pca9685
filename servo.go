@@ -42,7 +42,7 @@ const (
 // Servo structure
 type Servo struct {
 	PCA     *PCA9685
-	Channel uint8
+	Channel int
 	Options *ServOptions
 }
 
@@ -54,7 +54,7 @@ type ServOptions struct {
 }
 
 // ServNew creates a new servo driver
-func ServoNew(p *PCA9685, chn uint8, o *ServOptions) *Servo {
+func ServoNew(p *PCA9685, chn int, o *ServOptions) *Servo {
 	s := &Servo{
 		PCA:     p,
 		Channel: chn,
@@ -98,5 +98,5 @@ func (s *Servo) Fraction(f float32) (err error) {
 
 // Reset channel
 func (s *Servo) Reset() (err error) {
-	return s.PCA.SetChannel(int(s.Channel), 0, 0)
+	return s.PCA.SetChannel(s.Channel, 0, 0)
 }
