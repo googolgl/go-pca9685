@@ -60,8 +60,8 @@ type Options struct {
 	ClockSpeed float32
 }
 
-// PCANew creates a new driver with specified i2c interface
-func PCANew(i2c *i2c.I2C, optn *Options) *PCA9685 {
+// New creates the new PCA9685 driver with specified i2c interface and options
+func New(i2c *i2c.I2C, optn *Options) (*PCA9685, error) {
 	adr := i2c.GetAddr()
 	pca := &PCA9685{
 		Conn: i2c,
@@ -74,15 +74,16 @@ func PCANew(i2c *i2c.I2C, optn *Options) *PCA9685 {
 	if optn != nil {
 		pca.Optn = optn
 	}
-	return pca
-}
 
-// Init initialize the PCA9685
-func (pca *PCA9685) Init() (err error) {
 	if pca.Conn.GetAddr() == 0 {
-		return fmt.Errorf(`device %v is not initiated`, pca.Optn.Name)
+		return nil, fmt.Errorf(`device %v is not initiated`, pca.Optn.Name)
 	}
-	return pca.SetFreq(pca.Optn.Frequency)
+
+	if err := pca.SetFreq(pca.Optn.Frequency); err != nil {
+		return nil, err
+	}
+
+	return pca, nil
 }
 
 // SetFreq sets the PWM frequency in Hz for controller
@@ -114,8 +115,8 @@ func (pca *PCA9685) GetFreq() float32 {
 	return pca.Optn.Frequency
 }
 
-// DeInit reset the chip
-func (pca *PCA9685) DeInit() (err error) {
+// Reset the chip
+func (pca *PCA9685) Reset() (err error) {
 	return pca.Conn.WriteRegU8(Mode1, 0x00)
 }
 

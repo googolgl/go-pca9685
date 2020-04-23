@@ -33,8 +33,7 @@ func main() {
         log.Fatal(err)
     }
 
-    pca0 := pca9685.PCANew(i2c, nil)
-    err = pca0.Init()
+    pca0, err = pca9685.New(i2c, nil)
     if err != nil {
         log.Fatal(err)
     }
@@ -44,7 +43,7 @@ func main() {
     time.Sleep(1 * time.Second)
 
     // Servo 
-    servo1 := ServoNew(pca0, 0, nil)
+    servo1 := pca0.ServoNew(0, nil)
 
     // Angle in degrees. Must be in the range `0` to `Range`
     for i := 0; i < 130; i++ {

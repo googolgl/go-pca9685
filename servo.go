@@ -53,10 +53,10 @@ type ServOptions struct {
 	MaxPulse float32
 }
 
-// ServNew creates a new servo driver
-func ServoNew(p *PCA9685, chn int, o *ServOptions) *Servo {
+// ServoNew creates a new servo driver
+func (pca *PCA9685) ServoNew(chn int, o *ServOptions) *Servo {
 	s := &Servo{
-		PCA:     p,
+		PCA:     pca,
 		Channel: chn,
 		Options: &ServOptions{
 			Range:    ServoRangeDef,
