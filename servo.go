@@ -41,8 +41,8 @@ const (
 
 // Servo structure
 type Servo struct {
-	PWM     *PCA9685
-	Channel uint8
+	PCA     *PCA9685
+	Channel int
 	Options *ServOptions
 }
 
@@ -53,10 +53,10 @@ type ServOptions struct {
 	MaxPulse float32
 }
 
-// ServNew creates a new servo driver
-func ServoNew(p *PCA9685, chn uint8, o *ServOptions) *Servo {
+// ServoNew creates a new servo driver
+func (pca *PCA9685) ServoNew(chn int, o *ServOptions) *Servo {
 	s := &Servo{
-		PWM:     p,
+		PCA:     pca,
 		Channel: chn,
 		Options: &ServOptions{
 			Range:    ServoRangeDef,
@@ -86,12 +86,17 @@ func (s *Servo) Fraction(f float32) (err error) {
 		return fmt.Errorf("Must be 0.0 to 1.0")
 	}
 
-	freq := s.PWM.GetFreq()
+	freq := s.PCA.GetFreq()
 
 	minDuty := s.Options.MinPulse * freq / 1000000 * 0xFFFF
 	maxDuty := s.Options.MaxPulse * freq / 1000000 * 0xFFFF
 	dutyRange := maxDuty - minDuty
 	dutyCycle := (int(minDuty+f*dutyRange) + 1) >> 4
 
-	return s.PWM.SetChannel(int(s.Channel), 0, dutyCycle)
+	return s.PCA.SetChannel(s.Channel, 0, dutyCycle)
+}
+
+// Reset servo
+func (s *Servo) Reset() (err error) {
+	return s.PCA.SetChannel(s.Channel, 0, 0)
 }

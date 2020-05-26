@@ -60,8 +60,8 @@ type Options struct {
 	ClockSpeed float32
 }
 
-// PCANew creates a new driver with specified i2c interface
-func PCANew(i2c *i2c.I2C, optn *Options) *PCA9685 {
+// New creates a new driver with specified i2c interface
+func New(i2c *i2c.I2C, optn *Options) *PCA9685 {
 	adr := i2c.GetAddr()
 	pca := &PCA9685{
 		Conn: i2c,
@@ -82,6 +82,7 @@ func (pca *PCA9685) Init() (err error) {
 	if pca.Conn.GetAddr() == 0 {
 		return fmt.Errorf(`device %v is not initiated`, pca.Optn.Name)
 	}
+	pca.Conn.WriteRegU8(Mode1, 0x00|0xA1) // Mode 1, autoincrement on)
 	return pca.SetFreq(pca.Optn.Frequency)
 }
 
@@ -106,7 +107,7 @@ func (pca *PCA9685) SetFreq(freq float32) (err error) {
 		return err
 	}
 	time.Sleep(5 * time.Millisecond)
-	return pca.Conn.WriteRegU8(Mode1, oldMode|0xA1) // Mode 1, autoincrement on)
+	return
 }
 
 // GetFreq returns frequency value
@@ -114,8 +115,8 @@ func (pca *PCA9685) GetFreq() float32 {
 	return pca.Optn.Frequency
 }
 
-// DeInit reset the chip
-func (pca *PCA9685) DeInit() (err error) {
+// Reset reset the chip
+func (pca *PCA9685) Reset() (err error) {
 	return pca.Conn.WriteRegU8(Mode1, 0x00)
 }
 

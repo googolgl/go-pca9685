@@ -33,10 +33,9 @@ func main() {
         log.Fatal(err)
     }
 
-    pca0 := pca9685.PCANew(i2c, nil)
-    err = pca0.Init()
-    if err != nil {
-    log.Fatal(err)
+    pca0 := pca9685.New(i2c, nil)
+    if err := pca0.Init(); err != nil {
+        log.Fatal(err)
     }
 
     // Sets frequency for channel 0
@@ -45,7 +44,7 @@ func main() {
 
     // Angle in degrees. Must be in the range `0` to `Range`
     // Rotates from 0 to 130 degrees
-    servo1 := ServoNew(pca0, 0, nil)
+    servo1 := pca0.ServoNew(0, nil)
     for i := 0; i < 130; i++ {
         servo1.Angle(i)
         time.Sleep(10 * time.Millisecond)
@@ -53,8 +52,6 @@ func main() {
 
     // Fraction as pulse width expressed between 0.0 `MinPulse` and 1.0 `MaxPulse`
     servo1.Fraction(0.5)
-
-    pca0.DeInit()
 }
 ```
 
