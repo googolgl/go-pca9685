@@ -17,7 +17,7 @@ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+OUT OF OR IN i2cECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
@@ -27,7 +27,7 @@ import (
 	"fmt"
 	"time"
 
-	i2c "github.com/d2r2/go-i2c"
+	"github.com/googolgl/go-i2c"
 )
 
 const (
@@ -49,8 +49,8 @@ const (
 
 // PCA9685 is a Driver for the PCA9685 16-channel 12-bit PWM/Servo controller
 type PCA9685 struct {
-	Conn *i2c.I2C
-	Optn *Options
+	i2c  *i2c.Options
+	optn *Options
 }
 
 // Options for controller
@@ -60,30 +60,32 @@ type Options struct {
 	ClockSpeed float32
 }
 
-// New creates a new driver with specified i2c interface
-func New(i2c *i2c.I2C, optn *Options) *PCA9685 {
+// New creates the new PCA9685 driver with specified i2c interface and options
+func New(i2c *i2c.Options, optn *Options) (*PCA9685, error) {
 	adr := i2c.GetAddr()
+	if adr == 0 {
+		return nil, fmt.Errorf(`I2C device is not initiated`)
+	}
+
 	pca := &PCA9685{
-		Conn: i2c,
-		Optn: &Options{
+		i2c: i2c,
+		optn: &Options{
 			Name:       "Controller" + fmt.Sprintf("-0x%x", adr),
 			Frequency:  DefaultPWMFrequency,
 			ClockSpeed: ReferenceClockSpeed,
 		},
 	}
 	if optn != nil {
-		pca.Optn = optn
+		pca.optn = optn
 	}
-	return pca
-}
 
-// Init initialize the PCA9685
-func (pca *PCA9685) Init() (err error) {
-	if pca.Conn.GetAddr() == 0 {
-		return fmt.Errorf(`device %v is not initiated`, pca.Optn.Name)
+	if err := pca.i2c.WriteRegU8(Mode1, 0x00|0xA1); err != nil { // Mode 1, autoincrement on)
+		return nil, err
 	}
-	pca.Conn.WriteRegU8(Mode1, 0x00|0xA1) // Mode 1, autoincrement on)
-	return pca.SetFreq(pca.Optn.Frequency)
+	if err := pca.SetFreq(DefaultPWMFrequency); err != nil {
+		return nil, err
+	}
+	return pca, nil
 }
 
 // SetFreq sets the PWM frequency in Hz for controller
@@ -92,32 +94,32 @@ func (pca *PCA9685) SetFreq(freq float32) (err error) {
 	if prescaleVal < 3.0 {
 		return fmt.Errorf("PCA9685 cannot output at the given frequency")
 	}
-	oldMode, err := pca.Conn.ReadRegU8(Mode1)
+	oldMode, err := pca.i2c.ReadRegU8(Mode1)
 	if err != nil {
 		return err
 	}
 	newMode := (oldMode & 0x7F) | 0x10 // Mode 1, sleep
-	if err := pca.Conn.WriteRegU8(Mode1, newMode); err != nil {
+	if err := pca.i2c.WriteRegU8(Mode1, newMode); err != nil {
 		return err
 	}
-	if err := pca.Conn.WriteRegU8(Prescale, byte(prescaleVal)); err != nil {
+	if err := pca.i2c.WriteRegU8(Prescale, byte(prescaleVal)); err != nil {
 		return err
 	}
-	if err := pca.Conn.WriteRegU8(Mode1, oldMode); err != nil {
+	if err := pca.i2c.WriteRegU8(Mode1, oldMode); err != nil {
 		return err
 	}
 	time.Sleep(5 * time.Millisecond)
-	return
+	return nil
 }
 
 // GetFreq returns frequency value
 func (pca *PCA9685) GetFreq() float32 {
-	return pca.Optn.Frequency
+	return pca.optn.Frequency
 }
 
-// Reset reset the chip
+// Reset the chip
 func (pca *PCA9685) Reset() (err error) {
-	return pca.Conn.WriteRegU8(Mode1, 0x00)
+	return pca.i2c.WriteRegU8(Mode1, 0x00)
 }
 
 // SetChannel sets a single PWM channel
@@ -133,6 +135,6 @@ func (pca *PCA9685) SetChannel(chn, on, off int) (err error) {
 	}
 
 	buf := []byte{Led0On + byte(4*chn), byte(on) & 0xFF, byte(on >> 8), byte(off) & 0xFF, byte(off >> 8)}
-	_, err = pca.Conn.WriteBytes(buf)
+	_, err = pca.i2c.WriteBytes(buf)
 	return err
 }

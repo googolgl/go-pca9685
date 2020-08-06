@@ -41,14 +41,14 @@ const (
 
 // Servo structure
 type Servo struct {
-	PCA     *PCA9685
-	Channel int
-	Options *ServOptions
+	pca     *PCA9685
+	channel int
+	options *ServOptions
 }
 
 // ServOptions for servo
 type ServOptions struct {
-	Range    int // actuation range
+	AcRange  int // actuation range
 	MinPulse float32
 	MaxPulse float32
 }
@@ -56,26 +56,26 @@ type ServOptions struct {
 // ServoNew creates a new servo driver
 func (pca *PCA9685) ServoNew(chn int, o *ServOptions) *Servo {
 	s := &Servo{
-		PCA:     pca,
-		Channel: chn,
-		Options: &ServOptions{
-			Range:    ServoRangeDef,
+		pca:     pca,
+		channel: chn,
+		options: &ServOptions{
+			AcRange:  ServoRangeDef,
 			MinPulse: ServoMinPulseDef,
 			MaxPulse: ServoMaxPulseDef,
 		},
 	}
 	if o != nil {
-		s.Options = o
+		s.options = o
 	}
 	return s
 }
 
 // Angle in degrees. Must be in the range `0` to `Range`.
 func (s *Servo) Angle(a int) (err error) {
-	if a < 0 || a > s.Options.Range {
+	if a < 0 || a > s.options.AcRange {
 		return fmt.Errorf("Angle out of range")
 	}
-	return s.Fraction(float32(a) / float32(s.Options.Range))
+	return s.Fraction(float32(a) / float32(s.options.AcRange))
 }
 
 // Fraction as pulse width expressed between 0.0 `MinPulse` and 1.0 `MaxPulse`.
@@ -86,17 +86,17 @@ func (s *Servo) Fraction(f float32) (err error) {
 		return fmt.Errorf("Must be 0.0 to 1.0")
 	}
 
-	freq := s.PCA.GetFreq()
+	freq := s.pca.GetFreq()
 
-	minDuty := s.Options.MinPulse * freq / 1000000 * 0xFFFF
-	maxDuty := s.Options.MaxPulse * freq / 1000000 * 0xFFFF
+	minDuty := s.options.MinPulse * freq / 1000000 * 0xFFFF
+	maxDuty := s.options.MaxPulse * freq / 1000000 * 0xFFFF
 	dutyRange := maxDuty - minDuty
 	dutyCycle := (int(minDuty+f*dutyRange) + 1) >> 4
 
-	return s.PCA.SetChannel(s.Channel, 0, dutyCycle)
+	return s.pca.SetChannel(int(s.channel), 0, dutyCycle)
 }
 
-// Reset servo
+// Reset channel
 func (s *Servo) Reset() (err error) {
-	return s.PCA.SetChannel(s.Channel, 0, 0)
+	return s.pca.SetChannel(s.channel, 0, 0)
 }

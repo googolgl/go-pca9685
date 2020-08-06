@@ -21,37 +21,37 @@ import (
 	"log"
 	"time"
 
-	i2c "github.com/d2r2/go-i2c"
+	"github.com/googolgl/go-i2c"
 	"github.com/googolgl/go-pca9685"
 )
 
 func main() {
     // Create new connection to i2c-bus on 1 line with address 0x40.
     // Use i2cdetect utility to find device address over the i2c-bus
-    i2c, err := i2c.NewI2C(pca9685.Address, 1)
+    i2c, err := i2c.New(pca9685.Address, 1)
     if err != nil {
         log.Fatal(err)
     }
 
-    pca0 := pca9685.New(i2c, nil)
-    if err := pca0.Init(); err != nil {
+    pca0, err = pca9685.New(i2c, nil)
+    if err != nil {
         log.Fatal(err)
     }
 
-    // Sets frequency for channel 0
+    // Sets a single PWM channel 0
     pca0.SetChannel(0, 0, 130)
-    time.Sleep(1 * time.Second)
+
+    // Servo on channel 0
+    servo0 := pca0.ServoNew(0, nil)
 
     // Angle in degrees. Must be in the range `0` to `Range`
-    // Rotates from 0 to 130 degrees
-    servo1 := pca0.ServoNew(0, nil)
     for i := 0; i < 130; i++ {
-        servo1.Angle(i)
+        servo0.Angle(i)
         time.Sleep(10 * time.Millisecond)
     }
 
     // Fraction as pulse width expressed between 0.0 `MinPulse` and 1.0 `MaxPulse`
-    servo1.Fraction(0.5)
+    servo0.Fraction(0.5)
 }
 ```
 
