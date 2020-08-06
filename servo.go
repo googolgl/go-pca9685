@@ -48,7 +48,7 @@ type Servo struct {
 
 // ServOptions for servo
 type ServOptions struct {
-	Range    int // actuation range
+	AcRange  int // actuation range
 	MinPulse float32
 	MaxPulse float32
 }
@@ -59,7 +59,7 @@ func (pca *PCA9685) ServoNew(chn int, o *ServOptions) *Servo {
 		PCA:     pca,
 		Channel: chn,
 		Options: &ServOptions{
-			Range:    ServoRangeDef,
+			AcRange:  ServoRangeDef,
 			MinPulse: ServoMinPulseDef,
 			MaxPulse: ServoMaxPulseDef,
 		},
@@ -72,10 +72,10 @@ func (pca *PCA9685) ServoNew(chn int, o *ServOptions) *Servo {
 
 // Angle in degrees. Must be in the range `0` to `Range`.
 func (s *Servo) Angle(a int) (err error) {
-	if a < 0 || a > s.Options.Range {
+	if a < 0 || a > s.Options.AcRange {
 		return fmt.Errorf("Angle out of range")
 	}
-	return s.Fraction(float32(a) / float32(s.Options.Range))
+	return s.Fraction(float32(a) / float32(s.Options.AcRange))
 }
 
 // Fraction as pulse width expressed between 0.0 `MinPulse` and 1.0 `MaxPulse`.
