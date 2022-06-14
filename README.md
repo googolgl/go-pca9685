@@ -28,7 +28,7 @@ import (
 func main() {
     // Create new connection to i2c-bus on 1 line with address 0x40.
     // Use i2cdetect utility to find device address over the i2c-bus
-    i2c, err := i2c.New(pca9685.Address, 1)
+    i2c, err := i2c.New(pca9685.Address, "/dev/12c-0")
     if err != nil {
         log.Fatal(err)
     }
