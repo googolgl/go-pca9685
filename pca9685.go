@@ -105,6 +105,7 @@ func (pca *PCA9685) SetFreq(freq float32) (err error) {
 	if err := pca.i2c.WriteRegU8(Prescale, byte(prescaleVal)); err != nil {
 		return err
 	}
+	pca.optn.Frequency = freq
 	if err := pca.i2c.WriteRegU8(Mode1, oldMode); err != nil {
 		return err
 	}
